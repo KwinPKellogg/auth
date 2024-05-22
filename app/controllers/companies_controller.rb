@@ -24,20 +24,33 @@ class CompaniesController < ApplicationController
   def edit
     @company = Company.find_by({ "id" => params["id"] })
   end
-  
+
   def update
     @company = Company.find_by({ "id" => params["id"] })
-    @company["name"] = params["name"]
-    @company["city"] = params["city"]
-    @company["state"] = params["state"]
-    @company.save
+
+    # only authorize logged-in user to edit companies
+    if User.find_by({ "id" => session["user_id"] }) != nil
+      @company["name"] = params["name"]
+      @company["city"] = params["city"]
+      @company["state"] = params["state"]
+      @company.save
+    else
+      flash["notice"] = "You must be logged in."
+    end
     redirect_to "/companies/#{@company["id"]}"
   end
-
+  
   def destroy
     @company = Company.find_by({ "id" => params["id"] })
-    @company.destroy
-    redirect_to "/companies"
+
+    # only authorize logged-in user to delete companies
+    if User.find_by({ "id" => session["user_id"] }) != nil
+      @company.destroy
+      redirect_to "/companies"
+    else
+      flash["notice"] = "You must be logged in."
+      redirect_to "/companies/#{@company["id"]}"
+    end
   end
 
 end
